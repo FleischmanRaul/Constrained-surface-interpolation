@@ -8,7 +8,7 @@ namespace cagd
     {
     protected:
         GLuint              _n;                 //order
-        GLdouble            _c_n;		//normalizing constants
+        GLdouble            _c_n;               //normalizing constants
         GLdouble            _lambda_n;          //phase change
 
         RealSquareMatrix    _bc;                //binomial coefficients
@@ -25,6 +25,6 @@ namespace cagd
         GLboolean CalculateDerivatives(GLuint max_order_of_derivates, GLdouble u, Derivatives& d) const;
 
         //redeclare and define inherited pure virutal methods from LocalCurveEnergy
-        //GLdouble operator()(GLdouble u) const;
+        virtual CyclicCurve3* Clone();
     };
 }

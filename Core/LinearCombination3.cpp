@@ -250,28 +250,28 @@ GLdouble LinearCombination3::Curvature(GLuint n)
         GLdouble u = _u_min + 2 * j * step;
         CalculateDerivatives(2,u,d);
         //cout << d[1].length() << "    " << pow(d[1].length(),3) << endl;
-        //even+=(d[1]^d[2]).length()/pow(d[1].length(),3);
-        even+=(d[1]^d[2]).length()/d[1].length();
-        //even+= d[1].length();
+        even+=(d[1]^d[2]).length()/pow(d[1].length(),3);
+        //even+=(d[1]^d[2]).length()/d[1].length();
+        even+= d[1].length();
     }
     for(GLuint j = 1; j<=n; j++)
     {
         GLdouble u = _u_min + 2 * j * step;
         CalculateDerivatives(2,u,d);
         //cout << d[1].length() << "    " << pow(d[1].length(),3) << endl;
-        //odd += (d[1]^d[2]).length()/pow(d[1].length(),3);
-        odd += (d[1]^d[2]).length()/d[1].length();
-        //odd += d[1].length();
+        odd += (d[1]^d[2]).length()/pow(d[1].length(),3);
+        //odd += (d[1]^d[2]).length()/d[1].length();
+        odd += d[1].length();
     }
     curvature = 2*even + 4*odd;
     CalculateDerivatives(2,_u_min,d);
-    //curvature += (d[1]^d[2]).length()/pow(d[1].length(),3);
-    curvature += (d[1]^d[2]).length()/d[1].length();
-    //curvature += d[1].length();
+    curvature += (d[1]^d[2]).length()/pow(d[1].length(),3);
+    //curvature += (d[1]^d[2]).length()/d[1].length();
+    curvature += d[1].length();
     CalculateDerivatives(2,_u_max,d);
-    //curvature += (d[1]^d[2]).length()/pow(d[1].length(),3);
-    curvature += (d[1]^d[2]).length()/d[1].length();
-    //curvature += d[1].length();
+    curvature += (d[1]^d[2]).length()/pow(d[1].length(),3);
+    //curvature += (d[1]^d[2]).length()/d[1].length();
+    curvature += d[1].length();
     curvature *= step;
     curvature /= 3.0;
 
@@ -306,6 +306,41 @@ GLdouble LinearCombination3::Length(GLuint n)
     curvature /= 3.0;
 
     return curvature;
+}
+
+GLdouble LinearCombination3::Fitness(GLuint n, RowMatrix<GLdouble>& eProportion)
+{
+    GLdouble step = (_u_max-_u_min)/(2*n);
+    GLdouble even = 0.0, odd=0.0;
+    GLdouble fitness = 0.0;
+    GLdouble w_e = eProportion[0];
+    GLdouble w_c = eProportion[1];
+    Derivatives d;
+    for(GLuint j = 1; j<n; j++)
+    {
+        GLdouble u = _u_min + 2 * j * step;
+        CalculateDerivatives(2,u,d);
+        even += w_c * (d[1]^d[2]).length()/pow(d[1].length(),3);
+        even += w_e * d[1].length();
+    }
+    for(GLuint j = 1; j<=n; j++)
+    {
+        GLdouble u = _u_min + 2 * j * step;
+        CalculateDerivatives(2,u,d);
+        odd += w_c * (d[1]^d[2]).length()/pow(d[1].length(),3);
+        odd += w_e * d[1].length();
+    }
+    fitness = 2*even + 4*odd;
+    CalculateDerivatives(2,_u_min,d);
+    fitness += w_c * (d[1]^d[2]).length()/pow(d[1].length(),3);
+    fitness += w_e * d[1].length();
+    CalculateDerivatives(2,_u_max,d);
+    fitness += w_c * (d[1]^d[2]).length()/pow(d[1].length(),3);
+    fitness += w_e * d[1].length();
+    fitness *= step;
+    fitness /= 3.0;
+
+    return fitness;
 }
 
 // destructor

@@ -39,7 +39,8 @@ HEADERS += \
     Core/TriangulatedMeshes3.h \
     Core/Constants.h \
     Core/DCoordinates3.h \
-    Core/Colors4.h
+    Core/Colors4.h \
+    Trigonometric/TrigonometricCurves3.h
 
 SOURCES += \
     GUI/GLWidget.cpp \
@@ -61,7 +62,8 @@ SOURCES += \
     Core/Materials.cpp \
     Core/RealSquareMatrices.cpp \
     Core/TensorProductSurfaces3.cpp \
-    Core/TriangulatedMeshes3.cpp
+    Core/TriangulatedMeshes3.cpp \
+    Trigonometric/TrigonometricCurves3.cpp
 
 CONFIG += console \
           c++11

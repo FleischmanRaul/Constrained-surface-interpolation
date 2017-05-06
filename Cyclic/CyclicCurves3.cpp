@@ -107,5 +107,11 @@ namespace cagd
             return GL_TRUE;
     }
 
+    CyclicCurve3* CyclicCurve3::Clone()
+    {
+        cout << "Cyclic clone" << endl;
+        return new CyclicCurve3(*this);
+    }
+
 }
 

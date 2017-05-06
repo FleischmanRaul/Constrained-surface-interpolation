@@ -36,16 +36,16 @@ namespace cagd
         GLdouble sa = pow(sin(alpha / 2.0), (GLint)(2*order));
         GLdouble ca = 2.0 * cos(alpha / 2.0);
 
-    for(GLuint i=0; i <= order ; ++i)
-    {
-        c[i] = 0.0;
-        for (GLuint r = 0; r <= i / 2 ; ++r)
+        for(GLuint i=0; i <= order ; ++i)
         {
-            c[i] += _bc( order , i - r ) * _bc( i - r , r ) * pow( ca , (GLint)( i - 2 * r ));
+            c[i] = 0.0;
+            for (GLuint r = 0; r <= i / 2 ; ++r)
+            {
+                c[i] += _bc( order , i - r ) * _bc( i - r , r ) * pow( ca , (GLint)( i - 2 * r ));
+            }
+        c[i] /= sa;
+        c[size - 1 - i] = c[i];
         }
-    c[i] /= sa;
-    c[size - 1 - i] = c[i];
-    }
     return GL_TRUE;
     }
     //atirni az m-et orderre?
@@ -60,7 +60,7 @@ namespace cagd
 
     GLboolean TrigonometricBernsteinSurface3::UBlendingFunctionValues(GLdouble u, RowMatrix<GLdouble> &values) const
     {
-        if(u < _u_min || u > _u_max)
+        if(u < 0.0 || u > _alpha)
         {
             values.ResizeColumns(0);
             return GL_FALSE;
@@ -74,13 +74,13 @@ namespace cagd
             values[i] = 0.0;
         }
 
-        if(u == _u_max)
+        if(u == 0.0)
         {
             values[0] = 1.0;
         }
         else
         {
-            if(u == _u_max)
+            if(u == _alpha)
             {
                 values[size - 1] = 1.0;
             }
@@ -107,7 +107,7 @@ namespace cagd
 
     GLboolean TrigonometricBernsteinSurface3::VBlendingFunctionValues(GLdouble v, RowMatrix<GLdouble> &values) const
     {
-        if(v < _v_min || v > _v_max)
+        if(v < 0.0 || v > _beta)
         {
             values.ResizeColumns(0);
             return GL_FALSE;
@@ -121,13 +121,13 @@ namespace cagd
             values[i] = 0.0;
         }
 
-        if(v == _v_max)
+        if(v == 0.0)
         {
             values[0] = 1.0;
         }
         else
         {
-            if(v == _v_max)
+            if(v == _beta)
             {
                 values[size - 1] = 1.0;
             }
@@ -156,7 +156,7 @@ namespace cagd
     {
         std::cout << "TrigonometricBernsteinSurface3::CalculatePartialDerivatives" << std::endl;
         pd.LoadNullVectors();
-        if(u < _u_min || u > _u_max || v < _v_min || v > _v_max)
+        if(u < 0.0 || u > _alpha || v < 0.0 || v > _beta)
         {
             return GL_FALSE;
         }

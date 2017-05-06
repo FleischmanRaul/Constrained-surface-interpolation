@@ -20,6 +20,7 @@
 #include "Core/Colors4.h"
 #include "Trigonometric/TrigonometricBernsteinSurfaces.h"
 #include "Trigonometric/BicubicBezierPatches.h"
+#include "Trigonometric/TrigonometricCurves3.h"
 #include "GA/InterpolatingCurveBiology.h"
 
 
@@ -57,15 +58,21 @@ private:
     cagd::GenericCurve3* _image_of_pc;
 
     //testing generic curves
-    GLuint                  _n, _mod, _div;
-    RowMatrix<GLdouble>     _u;
-    cagd::CyclicCurve3*     _cc;
-    cagd::GenericCurve3*    _icc;
-    cagd::GenericCurve3*    _icc2;
-    cagd::GenericCurve3*    _icc3;
+    GLuint                     _n, _mod, _div;
+    RowMatrix<GLdouble>        _u;
+    cagd::CyclicCurve3*        _cc;
+    cagd::TrigonometricCurve3* _tc;
+    cagd::GenericCurve3*       _icc;
+    cagd::GenericCurve3*       _icc2;
+    cagd::GenericCurve3*       _icc3;
 
-    //testing GA
-    GLuint                  iterations = 0;
+    //testing CurveGA
+    GLuint                  curve_iterations = 0;
+    GLuint                  curve_generations = 0;
+    GLuint                  curve_subgenerations = 0;
+    GLdouble                mutation_radius;
+    GLdouble                new_fitness;
+    GLdouble                previous_fitness;
     cagd::CurveIndividual*  ci;
     cagd::CurvePopulation*  cp;
     ColumnMatrix<DCoordinate3> datatoint;

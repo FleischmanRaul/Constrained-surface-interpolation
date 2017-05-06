@@ -68,6 +68,7 @@ namespace cagd
         // calculates a row matrix which consists of function values {F_i(u)}_{i=0}^{data_count-1}
         virtual GLboolean BlendingFunctionValues(GLdouble u, RowMatrix<GLdouble>& values) const = 0;
 
+        virtual LinearCombination3* Clone() = 0;
         //----------------
         // abstract method
         //----------------
@@ -81,9 +82,10 @@ namespace cagd
         // assure interpolation
         virtual GLboolean UpdateDataForInterpolation(const ColumnMatrix<GLdouble>& knot_vector, const ColumnMatrix<DCoordinate3>& data_points_to_interpolate);
 
-        //calculate curvature
+        //calculate curvature and length
         GLdouble Length(GLuint n);
         GLdouble Curvature(GLuint n);
+        GLdouble Fitness(GLuint n, RowMatrix<GLdouble>& eProportion);
 
         // destructor
         virtual ~LinearCombination3();
