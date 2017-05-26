@@ -1,4 +1,7 @@
 #include "MainWindow.h"
+#include <iostream>
+
+using namespace std;
 
 namespace cagd
 {
@@ -49,7 +52,19 @@ namespace cagd
         connect(_side_widget->trans_y_spin_box, SIGNAL(valueChanged(double)), _gl_widget, SLOT(set_trans_y(double)));
         connect(_side_widget->trans_z_spin_box, SIGNAL(valueChanged(double)), _gl_widget, SLOT(set_trans_z(double)));
 
-        connect(_side_widget->curveEvolveCheckBox, SIGNAL(clicked(bool)), _gl_widget, SLOT(set_evolve_state(bool)));
+        connect(_side_widget->curveEvolveCheckBox,  SIGNAL(clicked(bool)),       _gl_widget, SLOT(set_evolve_state(bool)));
+        connect(_side_widget->surfaceEvolveCheckBox,SIGNAL(clicked(bool)),       _gl_widget, SLOT(set_evolve_state2(bool)));
+        connect(_side_widget->curveEnergyType,      SIGNAL(activated(int)),      _gl_widget, SLOT(set_curve_energy_type(int)));
+        connect(_side_widget->curveType,            SIGNAL(activated(int)),      _gl_widget, SLOT(set_curve_type(int)));
+        connect(_side_widget->createCurvePopulation,SIGNAL(pressed()),           _gl_widget, SLOT(create_curve_population()));
+        connect(_side_widget->populationCount,      SIGNAL(valueChanged(int)),   _gl_widget, SLOT(set_population_count(int)));
+        connect(_side_widget->maxMaturityLevel,     SIGNAL(valueChanged(int)),   _gl_widget, SLOT(set_max_maturity_level(int)));
+        connect(_side_widget->matingPoolCount,      SIGNAL(valueChanged(int)),   _gl_widget, SLOT(set_mating_pool_size(int)));
+        connect(_side_widget->threshold,            SIGNAL(valueChanged(double)),_gl_widget, SLOT(set_threshold(double)));
+
+        connect(_side_widget->createCurvePopulation,SIGNAL(pressed()),           this, SLOT(enableCurveEvolveCheckbox()));
+
+        connect(_gl_widget, SIGNAL(valueChanged(double)), _side_widget->epsDoubleSpinBox, SLOT(setValue(double)));
     }
 
     //--------------------------------
@@ -58,5 +73,10 @@ namespace cagd
     void MainWindow::on_action_Quit_triggered()
     {
         qApp->exit(0);
+    }
+
+    void MainWindow::enableCurveEvolveCheckbox()
+    {
+        _side_widget->curveEvolveCheckBox->setEnabled(true);
     }
 }

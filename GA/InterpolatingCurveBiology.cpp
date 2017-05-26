@@ -35,21 +35,44 @@ CurveIndividual::CurveIndividual(CurveType type,CurveEnergyType etype, GLuint ge
     default: std::cout << "Error in constructing " << _type << " curve!" << endl;
                  break;
     }
-    _fitness = std::numeric_limits<GLdouble>::max();
+    _fitness = std::numeric_limits<GLdouble>::min();
 }
 
-//CurveIndividual::CurveIndividual(const CurveIndividual& ci):
-//_type(ci._type),_fitness(ci._fitness),_etype(ci._etype),_chromosome(ci._chromosome)
-//{
-//    if(ci._cc != nullptr)
-//    {
-//        _cc = ci._cc->Clone();
-//    }
-//    else
-//    {
-//        _cc = nullptr;
-//    }
-//}
+CurveIndividual::CurveIndividual(const CurveIndividual& ci):
+_type(ci._type),_fitness(ci._fitness),_etype(ci._etype),_chromosome(ci._chromosome)
+{
+    if(ci._cc != nullptr)
+    {
+        _cc = ci._cc->Clone();
+    }
+    else
+    {
+        _cc = nullptr;
+    }
+}
+
+CurveIndividual& CurveIndividual::operator=(const CurveIndividual& rhs)
+{
+    if (this == &rhs) return *this; // handle self assignment
+
+    _type        = rhs._type;
+    _fitness     = rhs._fitness;
+    _etype       = rhs._etype;
+    _chromosome  = rhs._chromosome;
+    _eProportion = rhs._eProportion;
+
+    if(_cc)
+    {
+        delete _cc;
+    }
+    _cc = nullptr;
+    if(rhs._cc)
+    {
+        _cc = rhs._cc->Clone();
+    }
+    return *this;
+}
+
 
 GLvoid CurveIndividual::SetEnergyProportions(const RowMatrix<GLdouble>& eProportion)
 {
@@ -116,7 +139,7 @@ GLvoid CurveIndividual::GetDefinitionDomain(GLdouble& u_min, GLdouble& u_max) co
 
 GenericCurve3* CurveIndividual::GenerateImage()
 {
-    return _cc->GenerateImage(2,100);                   //maybe has to be canged to 1
+    return _cc->GenerateImage(2,100);
 }
 
 GLboolean CurveIndividual::CalculateFitness(const ColumnMatrix<DCoordinate3> &dataToInterpolate, GLuint n)
@@ -158,8 +181,8 @@ CurveIndividual::~CurveIndividual()
 
 //-------------------------- Implementation of CurvePopulation --------------------------
 CurvePopulation::CurvePopulation(GLuint individualCount, CurveType type, CurveEnergyType etype, const ColumnMatrix<DCoordinate3> &dataToInterpolate,
-                                 GLuint maxMaturityLevel, GLuint divPointCount,RowMatrix<GLdouble>& eProportion, GLdouble threshold):
-    _individual(individualCount),_dataToInterpolate(dataToInterpolate),_maxMaturityLevel(maxMaturityLevel),_divPointCount(divPointCount),_threshold(threshold)
+                                 GLuint divPointCount,RowMatrix<GLdouble>& eProportion):
+    _individual(individualCount),_dataToInterpolate(dataToInterpolate),_divPointCount(divPointCount)
 {
 
     _geneNumber = dataToInterpolate.GetRowCount();
@@ -170,16 +193,6 @@ CurvePopulation::CurvePopulation(GLuint individualCount, CurveType type, CurveEn
         _individual[i].SetEnergyProportions(eProportion);
         _individual[i].CalculateFitness(_dataToInterpolate,_divPointCount);
     }
-}
-
-GLuint CurvePopulation::GetMaxMaturityLevel()
-{
-    return _maxMaturityLevel;
-}
-
-GLdouble CurvePopulation::GetThreshold()
-{
-    return _threshold;
 }
 
 GLboolean CurvePopulation::SetDataToInterpolate(const ColumnMatrix<DCoordinate3> &dataToInterpolate)
@@ -208,7 +221,7 @@ GenericCurve3* CurvePopulation::ImageOfBestIndividual()
 {
     if(_individual.GetColumnCount() < 1)
     {
-        throw Exception("Empty Curve Population!");
+        cout << "Empty Curve Population!" << endl;
     }
     _indexOfBestIndividual = 0;
     for(GLuint i = 1; i<_individual.GetColumnCount(); ++i)
@@ -292,7 +305,7 @@ GLvoid CurvePopulation::Recombination(GLdouble probability)
         {
             swap(wOffspring,_individual[r]);
         }
-        _individual[_indexOfBestIndividual].CalculateFitness(_dataToInterpolate, _divPointCount);
+        //_individual[_indexOfBestIndividual].CalculateFitness(_dataToInterpolate, _divPointCount);
     }
 }
 
@@ -324,7 +337,7 @@ GLvoid CurvePopulation::Mutation(GLdouble probability, GLdouble mutationRadiusPe
         {
             _individual[parent] =  offspring;
         }
-        _individual[parent].CalculateFitness(_dataToInterpolate, _divPointCount);
+        //_individual[parent].CalculateFitness(_dataToInterpolate, _divPointCount);
     }
 }
 
@@ -332,7 +345,7 @@ GLuint CurvePopulation::FindBestIndividual(const RowMatrix<GLuint> &pool) const
 {
     if(pool.GetColumnCount() < 1)
     {
-        throw Exception("Empty pool");
+        cout << "Empty pool!" << endl;
     }
     GLuint indexOfBestIndividual = pool[0];
     for(GLuint i = 0;i < pool.GetColumnCount();i++)
@@ -369,5 +382,4 @@ GLvoid CurvePopulation::Evolve(GLdouble mutationProbability, GLdouble mutationRa
     TournamentSelection(poolSize);
     Mutation(mutationProbability,mutationRadiusPercentage);
     Recombination(recombinationProbability);
-
 }

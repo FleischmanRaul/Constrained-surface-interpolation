@@ -10,5 +10,8 @@ namespace cagd
     public:
         // special and default constructor
         SideWidget(QWidget *parent = 0);
+
+    public slots:
+        void setValue(double value);
     };
 }

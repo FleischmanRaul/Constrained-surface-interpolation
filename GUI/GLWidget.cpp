@@ -15,7 +15,10 @@ GLWidget::GLWidget(QWidget *parent, const QGLFormat &format): QGLWidget(format, 
 {
     _curveTimer = new QTimer(this);
     _curveTimer->setInterval(1);
-    connect(_curveTimer, SIGNAL(timeout()), this, SLOT(_evolveCurves()));
+    _surfaceTimer = new QTimer(this);
+    _surfaceTimer->setInterval(0);
+    connect(_curveTimer,   SIGNAL(timeout()), this, SLOT(_evolveCurves()));
+    connect(_surfaceTimer, SIGNAL(timeout()), this, SLOT(_evolveSurfaces()));
 }
 
 //--------------------------------------------------------------------------------------
@@ -23,15 +26,15 @@ GLWidget::GLWidget(QWidget *parent, const QGLFormat &format): QGLWidget(format, 
 //--------------------------------------------------------------------------------------
 DirectionalLight * initializeDirectionalLight()
 {
-    DirectionalLight * dl = 0;
+    DirectionalLight * _dl = 0;
 
     HCoordinate3 direction(0.0,0.0,1.0,0.0);
-    Color4      ambient   (0.2,0.4,0.4,1.0);
+    Color4      ambient   (0.4,0.4,0.4,1.0);
     Color4      diffuse   (0.8,0.8,0.8,1.0);
     Color4      specular   (1.0,1.0,1.0,1.0);
 
-    dl = new DirectionalLight(GL_LIGHT0, direction, ambient, diffuse, specular);
-    return dl;
+    _dl = new DirectionalLight(GL_LIGHT0, direction, ambient, diffuse, specular);
+    return _dl;
 }
 
 //--------------------------------------------------------------------------------------
@@ -64,10 +67,10 @@ void GLWidget::initializeGL()
     // enabling depth test
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_POINT_SMOOTH);
-    glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
     glEnable(GL_LINE_SMOOTH);
-    glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
     glEnable(GL_POLYGON_SMOOTH) ;
+    glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
+    glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
     glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST ) ;
     glHint(GL_PERSPECTIVE_CORRECTION_HINT , GL_NICEST);
 
@@ -99,133 +102,137 @@ void GLWidget::initializeGL()
         // create and store your geometry in display lists or vertex buffer objects
         _pc = 0;
         _image_of_pc = 0;
-        dl = 0;
+        _dl = 0;
         _ips = 0;
         _cc = 0;
         _icc = 0;
-        _before_interpolation = 0;
+        _icc = nullptr;
+        _before_interpolation = nullptr;
         _after_interpolation = 0;
         // create and store your geometry in display lists or vertex buffer objects
 
 
-        _model.LoadFromOFF("Models/sphere.off", 1);
-        _model.UpdateVertexBufferObjects();
+//        _model.LoadFromOFF("Models/sphere.off", 1);
+//        _model.UpdateVertexBufferObjects();
 
-        _n = 5;
+        _n = 4;
 
-        ColumnMatrix<GLdouble> chromosome(2*_n+1);
-        GLdouble step = PI / (2 * _n);
+        ColumnMatrix<GLdouble> chromosome  (2*_n+1);
+        RowMatrix   <GLdouble> u_chromosome(2*_n+1);
+        ColumnMatrix<GLdouble> v_chromosome(2*_n+1);
+        GLdouble tart = PI;
+        GLdouble step = tart / (2*_n);
 
         _u.ResizeColumns(2*_n+1);
         for(GLuint i=0; i<2*_n+1; i++)
         {
-            _u[i] = min(i*step, PI);
+            _u[i] = min(i*step, tart);
             chromosome[i] = _u[i];
         }
+
+        for(GLuint i=0; i<2*_n+1; i++)
+        {
+            _u[i] = min(i*step, tart);
+            u_chromosome[i] = _u[i];
+            v_chromosome[i] = _u[i];
+        }
+
+//        u_chromosome[0] = 0;
+//        u_chromosome[1] = 0.255996;
+//        u_chromosome[2] = 0.327781; 0.419147 0.681159 1.21572 1.29602 1.31108 2.02642 2.38215 3.14159
+
         //chromosome[0]+=0.2;
         datatoint.ResizeRows(2*_n+1);
         for(GLuint i=0;i<2*_n+1;i++)
         {
             DCoordinate3 &p = datatoint[i];
             p[0] = cos(_u[i]);
-            //p[1] = sin(_u[i]);
-            p[1] = -1.0 + 2.0 * (GLdouble)rand() / (GLdouble)RAND_MAX;
+            p[1] = sin(_u[i]);
+            //p[2] = -1.0 + 2.0 * (GLdouble)rand() / (GLdouble)RAND_MAX;
         }
 
         // ////////////////////////////////////////////////////////////////////////////////////
 
-//        _cc = new CyclicCurve3(_n);
-
-//        if (!_cc)
-//        {
-//            throw Exception("Could not generate the cyclic curve!");
-//        }
-//        for(GLuint i=0;i<2*_n+1;i++)
-//        {
-//            DCoordinate3 &cp = (*_cc)[i];
-//            cp[0] = cos(_u[i]);
-//            cp[1] = sin(_u[i]);
-//        }
-//        if (!_cc->UpdateVertexBufferObjectsOfData())
-//        {
-//            throw Exception("Could not update the VBO of the cyclic curve's control polygon!");
-//        }
-//        _mod = 2;
-//        _div = 200;
-//        _icc3 = _cc->GenerateImage(_mod, _div);
-//        cout << _cc->Curvature(100) << endl;
-//        cout << _cc->Length(20) << endl;
-
-//        if (!_icc3)
-//        {
-//            throw Exception("Could not generate the image of the cyclic curve!");
-//        }
-
-//        if (!_icc3->UpdateVertexBufferObjects())
-//        {
-//            throw Exception("Could not update the VBO of the cyclic curve's image!");
-//        }
-        // ///////////////////////////////////////////////////////////////////////////////////////////////////////
-        //        ci = new CurveIndividual(CYCLIC,2*_n+1);
-        //        ci->SetChromosome(chromosome);
-        //        ci->CalculateFitness(datatoint);
-        //        ci->GenerateImage();
-        //        cout << "Fitness: " << ci->Fitness() << endl;
-
-        //cp = new CurvePopulation(100,CYCLIC,11,100,100);
-        _tc = new TrigonometricCurve3(5,PI);
-        if (!_tc)
+        controll_nett.ResizeColumns(2*_n+1);
+        controll_nett.ResizeRows(2*_n+1);
+        _Bsurface = new TrigonometricBernsteinSurface3(tart,_n,tart,_n);
+        for(GLuint i = 0; i < 2*_n+1; i++)
         {
-            throw Exception("Could not generate the trigonometric curve!");
+            for(GLuint j = 0; j<2*_n+1; j++)
+            {
+
+                //DCoordinate3 &p = (*_Bsurface)(i,j);//controll_nett(i,j);
+                DCoordinate3 &p = controll_nett(i,j);
+                p[0] = -_n * 0 +  (GLdouble)i/2;
+                p[1] = -_n * 0 +  (GLdouble)j/2;//-1.0 + 2.0 * (GLdouble)rand() / (GLdouble)RAND_MAX;
+                //p[2] = (GLdouble)rand() / (GLdouble)RAND_MAX;
+            }
         }
-        for(GLuint i=0;i<2*_n+1;i++)
+
+        DCoordinate3 &p = controll_nett(_n,_n);
+        p[2] = 1.34;
+
+//        if (!_Bsurface->UpdateDataForInterpolation(u_chromosome,v_chromosome,controll_nett))
+//        {
+//            throw Exception("Could not update the VBO!");
+//        }
+//        _before_interpolation = _Bsurface->GenerateImage(100,100, TensorProductSurface3::LOGARITHMIC_UMBILIC_DEVIATION_ENERGY_FRAGMENT);
+//        _Bsurface->UpdateVertexBufferObjectsOfData();
+//        if(!_before_interpolation->UpdateVertexBufferObjects())
+//        {
+//            cout << "Error updating the vertex buffer objects" << endl;
+//        }
+//        cout << "Umbilic deviation: " << _Bsurface->Fitness(30,30,UMBILIC_DEVIATION) << endl;
+//        cout << "Total curvature: "     << _Bsurface->Fitness(30,30,TOTAL_CURVATURE) << endl;
+//        cout << "Willmore: " << _Bsurface->Fitness(30,30,WILLMORE) << endl;
+
+//        si = new SurfaceIndividual(BERNSTEIN,TOTAL_CURVATURE,9,9);
+//        if(!si->GenerateChromosomes())
+//        {
+//            throw Exception("error in generating the chromosomes!");
+//        }
+//        if(!si->CalculateFitness(controll_nett,30,30))
+//        {
+//            throw Exception("error in calculating fitness!");
+//        }
+//        cout << si->Fitness() << endl;
+//        _before_interpolation = si->GenerateImage(TensorProductSurface3::LOGARITHMIC_TOTAL_CURVATURE_ENERGY_FRAGMENT);
+//        cout << "hello" << endl;
+        sp = new SurfacePopulation(100, BERNSTEIN, WILLMORE,controll_nett,20,TensorProductSurface3::LOGARITHMIC_WILLMORE_ENERGY_FRAGMENT);
+        _before_interpolation = sp->ImageOfBestIndividual();
+        cout << sp->FitnessOfBestIndividual() << endl;
+        if(!_before_interpolation->UpdateVertexBufferObjects())
         {
-            DCoordinate3 &cp = (*_tc)[i];
-            cp[0] = i/4;
-            cp[1] = sin(_u[i]);
+            cout << "Error updating the vertex buffer objects" << endl;
         }
-        chromosome[10] = PI;
-        cout << chromosome << endl;
-//        if (!_tc->UpdateDataForInterpolation(chromosome,datatoint))
-//        {
-//            throw Exception("Could not update the VBO of the cyclic curve's control polygon!");
-//        }
-//        _mod = 2;
-//        _div = 200;
-//        _icc3 = _tc->GenerateImage(_mod, _div);
-//        GLdouble a,b;
-//        _tc->GetDefinitionDomain(a,b);
-//        //cout << a << " " << b << endl;
-//        cout << _tc->Curvature(50) << endl;
-//        if (!_icc3)
-//        {
-//            throw Exception("Could not generate the image of the trigonometric curve!");
-//        }
 
-//        if (!_icc3->UpdateVertexBufferObjects())
-//        {
-//            throw Exception("Could not update the VBO of the trigonometric curve's image!");
-//        }
+        if (!_shader.InstallShaders("Shaders/two_sided_lighting_color.vert", "Shaders/two_sided_lighting_color.frag"))
+        {
+            // throw
+        }
 
-        RowMatrix<GLdouble> energyprop(2);
-        energyprop[0] = 1;
-        energyprop[1] = 3;
-
-        cp = new CurvePopulation(100,TRIGONOMETRIC,MIXED,datatoint,50,50, energyprop);
-        //cp->SetDataToInterpolate(datatoint);
-        //cp->CalculateFitnesses();
-//        _icc2 = cp->ImageOfBestIndividual();
-//        _icc2->UpdateVertexBufferObjects();
-
-        _icc = nullptr;
-        _icc = cp->ImageOfBestIndividual();
-        _icc->UpdateVertexBufferObjects();
 
     }
     catch (Exception &e)
     {
         cout << e << endl;
     }
+
+    DirectionalLight * _dl2 = 0;
+
+    HCoordinate3 direction(0.0,1.0,0.0,0.0);
+    Color4      ambient   (0.4,0.4,0.4,1.0);
+    Color4      diffuse   (0.8,0.8,0.8,1.0);
+    Color4      specular   (1.0,1.0,1.0,1.0);
+
+//    _dl2 = new DirectionalLight(GL_LIGHT2, direction, ambient, diffuse, specular);
+    _dl = initializeDirectionalLight();
+    glEnable(GL_LIGHTING);
+    glEnable(GL_NORMALIZE);
+    glEnable(GL_LIGHT0);
+//    glEnable(GL_LIGHT2);
+    _dl->Enable();
+//    _dl2->Enable();
 }
 
 //-----------------------
@@ -248,65 +255,57 @@ void GLWidget::paintGL()
 
     // render your geometry (this is oldest OpenGL rendering technique, later we will use some advanced methods)
 
-    glColor3f(5.0, 5.0, 1.0);
-    //    ci->_cc->UpdateVertexBufferObjectsOfData();
-    //    if(!ci->_cc->RenderData(GL_POINTS))
-    //    {
-    //        cout << "False" << endl;
-    //    }
-
-
-    //if (_icc)
-    //{
-    glColor3f(1.0,1.0,1.0);                         //a feher a kezdeti
-    //ci->_icc->RenderDerivatives(0, GL_LINE_STRIP);
-    //_icc2->RenderDerivatives(0, GL_LINE_STRIP);
-    //sleep(5000);
-//    _cc->RenderData(GL_POINTS);
-//    _icc3->RenderDerivatives(0,GL_LINE_LOOP);
-//    _icc3->RenderDerivatives(1,GL_LINES);
-//    _icc3->RenderDerivatives(2,GL_LINES);
-
     if (_icc)
     {
         //_cc->RenderData(GL_POINTS);
-        glColor3f(0.4,0.5,1.0);
+        glColor3f(0.0,0.5,1.0);
         _icc->RenderDerivatives(0,GL_LINE_STRIP);
-//        glColor3f(0.4,0.7,0.1);
-//        _icc->RenderDerivatives(1,GL_LINES);
-    }
-    glPointSize(10.0f);
-    glLineWidth(1);
-
-    if (_icc3)
-    {
-        //_cc->RenderData(GL_POINTS);
-//        glColor3f(0.5,0.5,0.5);
-//        _icc3->RenderDerivatives(0,GL_LINE_STRIP);
-//        glColor3f(1.0,0.7,0.1);
-//        glLineWidth(1);
-        //_icc3->RenderDerivatives(1,GL_LINES);
-        //glColor3f(1.0,0.0,0.1);
-//        _icc3->RenderDerivatives(2,GL_LINES);
-//        glColor3f(0.4,0.7,0.1);
-//        _tc->RenderData(GL_POINTS);
+        //glColor3f(0.4,0.7,0.1);
         //_icc->RenderDerivatives(1,GL_LINES);
     }
+    glPointSize(5.0f);
+    glLineWidth(1);
+    //_Bsurface->RenderData();
 
-    //glColor3f(0.7,0.1,0.3);
-    //ci->_icc->RenderDerivatives(1,GL_LINES);
-    //ci->_icc->RenderDerivatives(1,GL_POINTS);
-    //glColor3f(0.2,0.5,0.9);
-    //ci->_icc->RenderDerivatives(2,GL_LINES);
-    //ci->_icc->RenderDerivatives(2,GL_POINTS);
-    //}
-    for(GLuint i=0;i<=2*_n;i++)
+//    glDisable(GL_LIGHTING);
+//    glColor3f(1.0, 1.0, 1.0);
+//    _before_interpolation->RenderNormals();
+
+//    glEnable(GL_LIGHTING);
+
+
+    MatFBRuby.Apply();
+    _shader.Enable();
+    if(!_before_interpolation->Render(GL_TRIANGLES))
     {
-        DCoordinate3 &p = datatoint[i];
-        glBegin(GL_POINTS); //starts drawing of points
-        glVertex3d(p[0],p[1],p[2]);
-        glEnd();//end drawing of points
+        cout << "Error in rendering" << endl;
     }
+    _shader.Disable();
+    MatFBGold.Apply();
+    for(GLuint i = 0; i<2*_n+1;++i)
+    {
+        for(GLuint j = 0; j<2*_n+1;++j)
+        {
+            glColor3f(0.2,0.5,0.9);
+            DCoordinate3 &p = controll_nett(i,j);
+            glBegin(GL_POINTS); //starts drawing of points
+            glVertex3d(p[0],p[1],p[2]);
+            glEnd();//end drawing of points
+        }
+    }
+//    if(!_Bsurface->RenderData(GL_POINTS))
+//    {
+//        cout << "Error in rendering derivatives" << endl;
+//    }
+//    glColor3f(0.7,0.1,0.3);
+//              --Curve interpolation
+//    for(GLuint i=0;i<=2*_n;i++)
+//    {
+//        DCoordinate3 &p = datatoint[i];
+//        glBegin(GL_POINTS); //starts drawing of points
+//        glVertex3d(p[0],p[1],p[2]);
+//        glEnd();//end drawing of points
+//    }
 
     // pops the current matrix stack, replacing the current matrix with the one below it on the stack,
     // i.e., the original model view matrix is restored
@@ -405,7 +404,7 @@ void GLWidget::set_trans_z(double value)
 
 void GLWidget::_evolveCurves()
 {
-    cout << curve_iterations++ << endl;
+    //cout << curve_iterations++ << endl;
     cp->Evolve(0.6,mutation_radius,0.4,10);
     if (_icc)
     {
@@ -415,7 +414,7 @@ void GLWidget::_evolveCurves()
     _icc = cp->ImageOfBestIndividual();
     _icc->UpdateVertexBufferObjects();
     new_fitness = cp->FitnessOfBestIndividual();
-    cout << -new_fitness << endl;
+    //cout << -new_fitness << endl;
     if(new_fitness != previous_fitness)
     {
         curve_generations++;
@@ -423,10 +422,11 @@ void GLWidget::_evolveCurves()
     }
     else
     {
-        if(curve_subgenerations > cp->GetMaxMaturityLevel())
+        if(curve_subgenerations > _maxMaturityLevel)
         {
             mutation_radius/=2;
             curve_subgenerations = 0;
+            emit valueChanged(mutation_radius);
         }
         else
         {
@@ -434,8 +434,8 @@ void GLWidget::_evolveCurves()
         }
     }
     previous_fitness = new_fitness;
-    cout << mutation_radius << endl;
-    if(mutation_radius < cp->GetThreshold())
+    cout << previous_fitness << endl;
+    if(mutation_radius < _threshold)
     {
         //curveEvolveCheckBox -> setChecked(false);
         set_evolve_state(false);
@@ -448,15 +448,13 @@ void GLWidget::set_evolve_state(bool value)
     if (_evolve != value)
     {
         _evolve = value;
-
         if (_evolve)
         {
-            mutation_radius  = 1.0;
-            previous_fitness = 0.0;
             _curveTimer->start();
         }
         else
         {
+            cout << "threshold: " << _threshold << endl;
             _curveTimer->stop();
         }
 
@@ -464,4 +462,90 @@ void GLWidget::set_evolve_state(bool value)
     }
 }
 
+void GLWidget::_evolveSurfaces()
+{
+    sp->Evolve(1.0,0.5,0.5,1);
+    cout << "it: " <<curve_iterations++ << endl;
+    _before_interpolation = sp->ImageOfBestIndividual();
+    cout << sp->FitnessOfBestIndividual() << endl;
+    if(!_before_interpolation->UpdateVertexBufferObjects())
+    {
+        cout << "Error updating the vertex buffer objects" << endl;
+    }
+}
+
+void GLWidget::set_evolve_state2(bool value)
+{
+    if (_evolve != value)
+    {
+        _evolve = value;
+        if (_evolve)
+        {
+            curve_iterations = 0;
+            _surfaceTimer->start();
+        }
+        else
+        {
+            _surfaceTimer->stop();
+        }
+        updateGL();
+    }
+}
+
+void GLWidget::set_curve_energy_type(int value)
+{
+    _curveEnergyType = (CurveEnergyType)value;
+}
+void GLWidget::set_curve_type(int value)
+{
+    _curveType = (CurveType)value;
+}
+void GLWidget::set_population_count(int value)
+{
+    _populationCount = (GLuint)value;
+}
+void GLWidget::set_max_maturity_level(int value)
+{
+    _maxMaturityLevel = (GLuint)value;
+}
+void GLWidget::set_mating_pool_size(int value)
+{
+    _matingPoolCount = (GLuint)value;
+}
+void GLWidget::set_threshold(double value)
+{
+    _threshold = value/1000;
+}
+void GLWidget::create_curve_population()
+{
+    curve_iterations = 0;
+    mutation_radius  = 1.0;
+    previous_fitness = 0.0;
+    RowMatrix<GLdouble> energyprop(2);
+    energyprop[0] = 3;
+    energyprop[1] = 1;
+
+    cp = new CurvePopulation(_populationCount,_curveType,_curveEnergyType,datatoint,_matingPoolCount, energyprop);
+    _icc = cp->ImageOfBestIndividual();
+    _icc->UpdateVertexBufferObjects();
+}
+GLWidget::~GLWidget()
+{
+    if(_cc)
+        delete _cc, _cc=0;
+    if(_icc)
+        delete _icc, _icc=0;
+    if(_pc)
+        delete _pc, _pc=0;
+    if(_image_of_pc)
+        delete _image_of_pc, _image_of_pc=0;
+    if(_dl)
+        delete _dl, _dl = 0;
+    if(_ips)
+        delete _ips, _ips = 0;
+    if(_before_interpolation)
+        delete _before_interpolation, _before_interpolation = 0;
+    if(_after_interpolation)
+        delete _after_interpolation, _after_interpolation = 0;
+}
 }

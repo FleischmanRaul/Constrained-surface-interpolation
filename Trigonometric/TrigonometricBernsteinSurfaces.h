@@ -16,7 +16,7 @@ namespace cagd
 
         TriangularMatrix<GLdouble> _bc;
 
-        GLvoid _CalculateBinomialCoefficients(GLuint order, TriangularMatrix<GLdouble> &bc);
+        GLvoid    _CalculateBinomialCoefficients(GLuint order, TriangularMatrix<GLdouble> &bc);
         GLboolean _CalculateNormalizingCoefficients(GLuint order, GLdouble alpha, RowMatrix<GLdouble> &c);
 
     public:
@@ -26,6 +26,8 @@ namespace cagd
 
         GLboolean VBlendingFunctionValues(GLdouble v, RowMatrix<GLdouble>& values) const;
 
-        GLboolean CalculatePartialDerivatives(GLdouble u, GLdouble v, PartialDerivatives &pd) const;
+        GLboolean CalculatePartialDerivatives(GLuint maximum_order_of_partial_derivatives, GLdouble u, GLdouble v, PartialDerivatives &pd) const;
+
+        virtual TrigonometricBernsteinSurface3* Clone();
     };
 }

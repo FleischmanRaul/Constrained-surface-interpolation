@@ -61,11 +61,11 @@ int main(int argc, char **argv)
 {
     // creating an application object and setting one of its attributes
     QApplication app(argc, argv);
-
-    Base *p = new Derived2(1,2);
-    cout << p->g() << endl;
-    Base *q = p->clone();
-    cout << q->g() << endl;
+    srand(time(NULL));
+//    Base *p = new Derived2(1,2);
+//    cout << p->g() << endl;
+//    Base *q = p->clone();
+//    cout << q->g() << endl;
     // if you have installed a different version of Qt, it may happen that
     // the application attribute Qt::AA_UseDesktopOpenGL is not recognized
     // on Windows its existence is critical for our applications
@@ -75,7 +75,7 @@ int main(int argc, char **argv)
     // creating a main window object
     MainWindow mwnd;
     mwnd.showMaximized();
-
     // running the application
+    cout << "This is the end for you my friend" << endl;
     return app.exec();
 }

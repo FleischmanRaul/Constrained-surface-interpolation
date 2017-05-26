@@ -9,22 +9,24 @@ using namespace std;
 TriangulatedMesh3::TriangulatedMesh3(GLuint vertex_count, GLuint face_count, GLenum usage_flag)
 {
     _usage_flag = usage_flag;
-    _vbo_vertices = _vbo_normals = _vbo_tex_coordinates = _vbo_indices = 0;
+    _vbo_vertices = _vbo_normals = _vbo_colors = _vbo_tex_coordinates = _vbo_indices = 0;
     _vertex.resize(vertex_count);
     _normal.resize(vertex_count);
+    _color.resize(vertex_count);
     _tex.resize(vertex_count);
     _face.resize(face_count);
 }
 
 TriangulatedMesh3::TriangulatedMesh3(const TriangulatedMesh3 &mesh):
         _usage_flag(mesh._usage_flag),
-        _vbo_vertices(0), _vbo_normals(0), _vbo_tex_coordinates(0), _vbo_indices(0),
+        _vbo_vertices(0), _vbo_normals(0), _vbo_colors(0), _vbo_tex_coordinates(0), _vbo_indices(0),
         _vertex(mesh._vertex),
         _normal(mesh._normal),
+        _color(mesh._color),
         _tex(mesh._tex),
         _face(mesh._face)
 {
-    if (mesh._vbo_vertices && mesh._vbo_normals && mesh._vbo_tex_coordinates && mesh._vbo_indices)
+    if (mesh._vbo_vertices && mesh._vbo_normals && mesh._vbo_colors && mesh._vbo_tex_coordinates && mesh._vbo_indices)
         UpdateVertexBufferObjects(mesh._usage_flag);
 }
 
@@ -37,10 +39,11 @@ TriangulatedMesh3& TriangulatedMesh3::operator =(const TriangulatedMesh3& rhs)
         _usage_flag = rhs._usage_flag;
         _vertex = rhs._vertex;
         _normal = rhs._normal;
+        _color = rhs._color;
         _tex = rhs._tex;
         _face = rhs._face;
 
-        if (rhs._vbo_vertices && rhs._vbo_normals && rhs._vbo_tex_coordinates && rhs._vbo_indices)
+        if (rhs._vbo_vertices && rhs._vbo_normals && rhs._vbo_colors && rhs._vbo_tex_coordinates && rhs._vbo_indices)
             UpdateVertexBufferObjects(_usage_flag);
     }
 
@@ -58,37 +61,50 @@ GLvoid TriangulatedMesh3::DeleteVertexBufferObjects()
     if (_vbo_normals)
     {
         glDeleteBuffers(1, &_vbo_normals);
-        _vbo_vertices = 0;
+        _vbo_normals = 0;
+    }
+    if (_vbo_colors)
+    {
+        glDeleteBuffers(1, &_vbo_colors);
+        _vbo_colors = 0;
     }
     if (_vbo_tex_coordinates)
     {
         glDeleteTextures(1, &_vbo_tex_coordinates);
-        _vbo_vertices = 0;
+        _vbo_tex_coordinates = 0;
     }
     if (_vbo_indices)
     {
         glDeleteBuffers(1, &_vbo_indices);
-        _vbo_vertices = 0;
+        _vbo_indices = 0;
     }
 
 }
 
 GLboolean TriangulatedMesh3::Render(GLenum render_mode) const
 {
-    if (!_vbo_vertices || !_vbo_normals || !_vbo_tex_coordinates || !_vbo_indices)
+    if (!_vbo_vertices || !_vbo_normals || !_vbo_colors || !_vbo_tex_coordinates || !_vbo_indices)
+    {
         return GL_FALSE;
+    }
 
     if (render_mode != GL_TRIANGLES && render_mode != GL_POINTS)
         return GL_FALSE;
     // enable client states of vertex, normal and texture coordinate arrays
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_NORMAL_ARRAY);
+    glEnableClientState(GL_COLOR_ARRAY);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
     // activate the VBO of texture coordinates
     glBindBuffer(GL_ARRAY_BUFFER, _vbo_tex_coordinates);
     // specify the location and data format of texture coordinates
     glTexCoordPointer(4, GL_FLOAT, 0, (const GLvoid *)0);
+
+    // activate the VBO of color components
+    glBindBuffer(GL_ARRAY_BUFFER, _vbo_colors);
+    // specify the location and data format of texture coordinates
+    glColorPointer(4, GL_FLOAT, 0, (const GLvoid *)0);
 
     // activate the VBO of normal vectors
     glBindBuffer(GL_ARRAY_BUFFER, _vbo_normals);
@@ -109,6 +125,7 @@ GLboolean TriangulatedMesh3::Render(GLenum render_mode) const
     // disable individual client-side capabilities
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_NORMAL_ARRAY);
+    glDisableClientState(GL_COLOR_ARRAY);
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
     // unbind any buffer object previously bound and restore client memory usage
@@ -117,6 +134,20 @@ GLboolean TriangulatedMesh3::Render(GLenum render_mode) const
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
     return GL_TRUE;
+}
+
+GLvoid TriangulatedMesh3::RenderNormals()
+{
+    glBegin(GL_LINES);
+        for (GLuint i = 0; i < _normal.size(); i++)
+        {
+            DCoordinate3 sum(_vertex[i]);
+            sum += _normal[i];
+
+            glVertex3dv(&_vertex[i][0]);
+            glVertex3dv(&sum[0]);
+        }
+    glEnd();
 }
 
 GLboolean TriangulatedMesh3::UpdateVertexBufferObjects(GLenum usage_flag)
@@ -148,6 +179,19 @@ GLboolean TriangulatedMesh3::UpdateVertexBufferObjects(GLenum usage_flag)
         return GL_FALSE;
     }
 
+    glGenBuffers(1, &_vbo_colors);
+
+    if (!_vbo_colors)
+    {
+        glDeleteBuffers(1, &_vbo_vertices);
+        _vbo_vertices = 0;
+
+        glDeleteBuffers(1, &_vbo_normals);
+        _vbo_normals = 0;
+
+        return GL_FALSE;
+    }
+
     glGenBuffers(1, &_vbo_tex_coordinates);
     if (!_vbo_tex_coordinates)
     {
@@ -155,6 +199,9 @@ GLboolean TriangulatedMesh3::UpdateVertexBufferObjects(GLenum usage_flag)
         _vbo_vertices = 0;
 
         glDeleteBuffers(1, &_vbo_normals);
+        _vbo_normals = 0;
+
+        glDeleteBuffers(1, &_vbo_colors);
         _vbo_normals = 0;
 
         return GL_FALSE;
@@ -167,6 +214,9 @@ GLboolean TriangulatedMesh3::UpdateVertexBufferObjects(GLenum usage_flag)
         _vbo_vertices = 0;
 
         glDeleteBuffers(1, &_vbo_normals);
+        _vbo_normals = 0;
+
+        glDeleteBuffers(1, &_vbo_colors);
         _vbo_normals = 0;
 
         glDeleteBuffers(1, &_vbo_tex_coordinates);
@@ -207,13 +257,19 @@ GLboolean TriangulatedMesh3::UpdateVertexBufferObjects(GLenum usage_flag)
         }
     }
 
-    GLuint tex_byte_size = 4 * _tex.size() * sizeof(GLfloat);
+    GLuint color_or_tex_byte_size = 4 * _tex.size() * sizeof(GLfloat);
+
+    glBindBuffer(GL_ARRAY_BUFFER, _vbo_colors);
+    glBufferData(GL_ARRAY_BUFFER, color_or_tex_byte_size, 0, _usage_flag);
+    GLfloat *color_component = (GLfloat*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+
+    memcpy(color_component, &_color[0][0], color_or_tex_byte_size);
 
     glBindBuffer(GL_ARRAY_BUFFER, _vbo_tex_coordinates);
-    glBufferData(GL_ARRAY_BUFFER, tex_byte_size, 0, _usage_flag);
+    glBufferData(GL_ARRAY_BUFFER, color_or_tex_byte_size, 0, _usage_flag);
     GLfloat *tex_coordinate = (GLfloat*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
     
-    memcpy(tex_coordinate, &_tex[0][0], tex_byte_size);
+    memcpy(tex_coordinate, &_tex[0][0], color_or_tex_byte_size);
 
     GLuint index_byte_size = 3 * _face.size() * sizeof(GLuint);
     
@@ -236,6 +292,10 @@ GLboolean TriangulatedMesh3::UpdateVertexBufferObjects(GLenum usage_flag)
         return GL_FALSE;
 
     glBindBuffer(GL_ARRAY_BUFFER, _vbo_normals);
+    if (!glUnmapBuffer(GL_ARRAY_BUFFER))
+        return GL_FALSE;
+
+    glBindBuffer(GL_ARRAY_BUFFER, _vbo_colors);
     if (!glUnmapBuffer(GL_ARRAY_BUFFER))
         return GL_FALSE;
 
@@ -279,6 +339,7 @@ GLboolean TriangulatedMesh3::LoadFromOFF(
     // allocating memory for vertices, unit normal vectors, texture coordinates, and faces
     _vertex.resize(vertex_count);
     _normal.resize(vertex_count);
+    _color.resize(vertex_count);
     _tex.resize(vertex_count);
     _face.resize(face_count);
 
@@ -407,6 +468,19 @@ GLfloat* TriangulatedMesh3::MapNormalBuffer(GLenum access_flag) const
     return result;
 }
 
+GLfloat* TriangulatedMesh3::MapColorBuffer(GLenum access_flag) const
+{
+    if (access_flag != GL_READ_ONLY && access_flag != GL_WRITE_ONLY && access_flag != GL_READ_WRITE)
+        return (GLfloat*)0;
+
+    glBindBuffer(GL_ARRAY_BUFFER, _vbo_colors);
+    GLfloat* result = (GLfloat*)glMapBuffer(GL_ARRAY_BUFFER, access_flag);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    return result;
+}
+
+
 //GLfloat* MapTextureBuffer(GLenum access_flag = GL_READ_ONLY) const; // done
 GLfloat* TriangulatedMesh3::MapTextureBuffer(GLenum access_flag) const
 {
@@ -424,6 +498,13 @@ GLfloat* TriangulatedMesh3::MapTextureBuffer(GLenum access_flag) const
 GLvoid TriangulatedMesh3::UnmapNormalBuffer() const
 {
     glBindBuffer(GL_ARRAY_BUFFER, _vbo_tex_coordinates);
+    glUnmapBuffer(GL_ARRAY_BUFFER);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+GLvoid TriangulatedMesh3::UnmapColorBuffer() const
+{
+    glBindBuffer(GL_ARRAY_BUFFER, _vbo_colors);
     glUnmapBuffer(GL_ARRAY_BUFFER);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }

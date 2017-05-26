@@ -18,8 +18,8 @@ namespace cagd
 {
     typedef GLdouble Gene;
     typedef ColumnMatrix<Gene> Chromosome;
-    enum    CurveType{BSPLINE, CYCLIC, TRIGONOMETRIC /*, etc.*/};
-    enum    CurveEnergyType{LENGTH, CURVATURE, MIXED};
+    enum    CurveType{CYCLIC, TRIGONOMETRIC /*, etc.*/};
+    enum    CurveEnergyType{LENGTH, CURVATURE, MIXED /*, etc.*/};
 
     class CurveIndividual
     {
@@ -36,9 +36,11 @@ namespace cagd
         // default constructor
         CurveIndividual(GLuint geneNumber = 0);
         // copy constructor
-        //CurveIndividual(const CurveIndividual& ci);
+        CurveIndividual(const CurveIndividual& ci);
         // special constructor
         CurveIndividual(CurveType type, CurveEnergyType etype,GLuint geneNumber = 0);
+
+        CurveIndividual& operator =(const CurveIndividual& rhs);
 
         GLboolean SetChromosome(ColumnMatrix<GLdouble> chromosome);
 
@@ -60,15 +62,13 @@ namespace cagd
     protected:
         GLuint                     _geneNumber;
         GLuint                     _indexOfBestIndividual;
-        GLuint                     _maxMaturityLevel;
         ColumnMatrix<DCoordinate3> _dataToInterpolate;
         GLuint                     _divPointCount;
-        GLdouble                   _threshold;
         RowMatrix<CurveIndividual> _individual;
 
     public:
         CurvePopulation(GLuint individualCount, CurveType type, CurveEnergyType etype, const ColumnMatrix<DCoordinate3> &dataToInterpolate,
-                        GLuint maxMaturityLevel, GLuint _divPointCount,RowMatrix<GLdouble>& eProportion, GLdouble threshold = EPS);
+                        GLuint divPointCount,RowMatrix<GLdouble>& eProportion);
 
 
         GLvoid Mutation(GLdouble probability, GLdouble mutationRadiusPercentage);
@@ -83,8 +83,6 @@ namespace cagd
         GLboolean      CalculateFitnesses();
         GLboolean      SetDataToInterpolate(const ColumnMatrix<DCoordinate3>& dataToInterpolate);
         GLuint         FindBestIndividual(const RowMatrix<GLuint> &pool) const;
-        GLuint         GetMaxMaturityLevel();
-        GLdouble       GetThreshold();
         GLdouble       FitnessOfBestIndividual();
 
         GenericCurve3* ImageOfIndividual(GLuint i) const;

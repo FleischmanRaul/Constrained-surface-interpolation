@@ -6,6 +6,7 @@
 #include <string>
 #include "TriangularFaces.h"
 #include "TCoordinates4.h"
+#include "Colors4.h"
 #include <vector>
 
 namespace cagd
@@ -33,6 +34,7 @@ namespace cagd
         GLenum                      _usage_flag;
         GLuint                      _vbo_vertices;
         GLuint                      _vbo_normals;
+        GLuint                      _vbo_colors;
         GLuint                      _vbo_tex_coordinates;
         GLuint                      _vbo_indices;
 
@@ -43,6 +45,7 @@ namespace cagd
         // geometry
         std::vector<DCoordinate3>    _vertex;
         std::vector<DCoordinate3>    _normal;
+        std::vector<Color4>          _color;
         std::vector<TCoordinate4>    _tex;
         std::vector<TriangularFace>  _face;
 
@@ -63,6 +66,8 @@ namespace cagd
         // renders the geometry
         GLboolean Render(GLenum render_mode = GL_TRIANGLES) const;
 
+        GLvoid RenderNormals() ;
+
         // updates all vertex buffer objects
         GLboolean UpdateVertexBufferObjects(GLenum usage_flag = GL_STATIC_DRAW);
 
@@ -76,11 +81,13 @@ namespace cagd
         // mapping vertex buffer objects
         GLfloat* MapVertexBuffer(GLenum access_flag = GL_READ_ONLY) const;
         GLfloat* MapNormalBuffer(GLenum access_flag = GL_READ_ONLY) const;  // done
+        GLfloat* MapColorBuffer(GLenum access_flag = GL_READ_ONLY) const;  // done
         GLfloat* MapTextureBuffer(GLenum access_flag = GL_READ_ONLY) const; // done
 
         // unmapping vertex buffer objects
         GLvoid UnmapVertexBuffer() const;
         GLvoid UnmapNormalBuffer() const;   // done
+        GLvoid UnmapColorBuffer() const;   // done
         GLvoid UnmapTextureBuffer() const;  // done
 
         // get properties of geometry

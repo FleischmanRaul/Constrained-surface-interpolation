@@ -2,12 +2,15 @@
 <ui version="4.0">
  <class>SideWidget</class>
  <widget class="QWidget" name="SideWidget">
+  <property name="enabled">
+   <bool>true</bool>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>289</width>
-    <height>289</height>
+    <width>309</width>
+    <height>895</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -21,6 +24,9 @@
     <width>269</width>
     <height>0</height>
    </size>
+  </property>
+  <property name="cursor">
+   <cursorShape>ArrowCursor</cursorShape>
   </property>
   <property name="windowTitle">
    <string>Form</string>
@@ -42,7 +48,7 @@
      <rect>
       <x>3</x>
       <y>21</y>
-      <width>261</width>
+      <width>271</width>
       <height>230</height>
      </rect>
     </property>
@@ -220,18 +226,371 @@
     </layout>
    </widget>
   </widget>
-  <widget class="QCheckBox" name="curveEvolveCheckBox">
+  <widget class="Line" name="line">
    <property name="geometry">
     <rect>
-     <x>20</x>
+     <x>60</x>
      <y>260</y>
-     <width>241</width>
-     <height>22</height>
+     <width>171</width>
+     <height>20</height>
     </rect>
    </property>
-   <property name="text">
-    <string>Enable curve population evolution</string>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
    </property>
+  </widget>
+  <widget class="QTabWidget" name="tabWidget">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>280</y>
+     <width>291</width>
+     <height>591</height>
+    </rect>
+   </property>
+   <property name="tabPosition">
+    <enum>QTabWidget::West</enum>
+   </property>
+   <property name="currentIndex">
+    <number>1</number>
+   </property>
+   <widget class="QWidget" name="tab">
+    <attribute name="title">
+     <string>Functional optimization of interpolating curves</string>
+    </attribute>
+    <widget class="QGroupBox" name="groupBox_2">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>0</y>
+       <width>241</width>
+       <height>331</height>
+      </rect>
+     </property>
+     <property name="autoFillBackground">
+      <bool>false</bool>
+     </property>
+     <property name="title">
+      <string>Parameters of the genetic algorithm</string>
+     </property>
+     <property name="flat">
+      <bool>true</bool>
+     </property>
+     <property name="checkable">
+      <bool>false</bool>
+     </property>
+     <widget class="QComboBox" name="curveEnergyType">
+      <property name="geometry">
+       <rect>
+        <x>90</x>
+        <y>60</y>
+        <width>141</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <item>
+       <property name="text">
+        <string>Length</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Curvature</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Mixed</string>
+       </property>
+      </item>
+     </widget>
+     <widget class="QLabel" name="label_8">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>60</y>
+        <width>90</width>
+        <height>30</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Energy type:</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="createCurvePopulation">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>25</y>
+        <width>221</width>
+        <height>30</height>
+       </rect>
+      </property>
+      <property name="autoFillBackground">
+       <bool>false</bool>
+      </property>
+      <property name="text">
+       <string>Create curve population</string>
+      </property>
+      <property name="checkable">
+       <bool>false</bool>
+      </property>
+      <property name="autoDefault">
+       <bool>false</bool>
+      </property>
+      <property name="default">
+       <bool>false</bool>
+      </property>
+      <property name="flat">
+       <bool>false</bool>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_9">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>100</y>
+        <width>70</width>
+        <height>30</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Curve type:</string>
+      </property>
+     </widget>
+     <widget class="QComboBox" name="curveType">
+      <property name="geometry">
+       <rect>
+        <x>90</x>
+        <y>100</y>
+        <width>141</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <item>
+       <property name="text">
+        <string>Cyclic</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Trigonometric</string>
+       </property>
+      </item>
+     </widget>
+     <widget class="QSpinBox" name="matingPoolCount">
+      <property name="geometry">
+       <rect>
+        <x>159</x>
+        <y>180</y>
+        <width>70</width>
+        <height>30</height>
+       </rect>
+      </property>
+      <property name="minimum">
+       <number>1</number>
+      </property>
+      <property name="value">
+       <number>10</number>
+      </property>
+     </widget>
+     <widget class="QSpinBox" name="populationCount">
+      <property name="geometry">
+       <rect>
+        <x>159</x>
+        <y>140</y>
+        <width>70</width>
+        <height>30</height>
+       </rect>
+      </property>
+      <property name="minimum">
+       <number>1</number>
+      </property>
+      <property name="maximum">
+       <number>200</number>
+      </property>
+      <property name="value">
+       <number>100</number>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_10">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>140</y>
+        <width>141</width>
+        <height>30</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Size of the population:</string>
+      </property>
+     </widget>
+     <widget class="QSpinBox" name="maxMaturityLevel">
+      <property name="geometry">
+       <rect>
+        <x>159</x>
+        <y>220</y>
+        <width>70</width>
+        <height>30</height>
+       </rect>
+      </property>
+      <property name="minimum">
+       <number>10</number>
+      </property>
+      <property name="maximum">
+       <number>200</number>
+      </property>
+      <property name="value">
+       <number>30</number>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_11">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>180</y>
+        <width>141</width>
+        <height>30</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Size of the mating pool:</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_12">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>220</y>
+        <width>141</width>
+        <height>30</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Max maturity level:</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_13">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>260</y>
+        <width>141</width>
+        <height>30</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Threshold:</string>
+      </property>
+     </widget>
+     <widget class="QDoubleSpinBox" name="threshold">
+      <property name="geometry">
+       <rect>
+        <x>160</x>
+        <y>260</y>
+        <width>70</width>
+        <height>30</height>
+       </rect>
+      </property>
+      <property name="decimals">
+       <number>10</number>
+      </property>
+      <property name="minimum">
+       <double>0.000001000000000</double>
+      </property>
+      <property name="maximum">
+       <double>1000.000000000000000</double>
+      </property>
+      <property name="singleStep">
+       <double>0.100000000000000</double>
+      </property>
+     </widget>
+     <widget class="QSlider" name="horizontalSlider">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>300</y>
+        <width>221</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="minimum">
+       <number>1</number>
+      </property>
+      <property name="maximum">
+       <number>1000000000</number>
+      </property>
+      <property name="singleStep">
+       <number>100</number>
+      </property>
+      <property name="pageStep">
+       <number>100</number>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="layoutWidget">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>330</y>
+       <width>231</width>
+       <height>57</height>
+      </rect>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <item>
+       <widget class="QCheckBox" name="curveEvolveCheckBox">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="text">
+         <string>Enable curve population evolution</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QDoubleSpinBox" name="epsDoubleSpinBox">
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+        <property name="decimals">
+         <number>10</number>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+    <zorder>layoutWidget</zorder>
+    <zorder>groupBox_2</zorder>
+   </widget>
+   <widget class="QWidget" name="tab_2">
+    <attribute name="title">
+     <string>Functional optimization of interpolating surfaces</string>
+    </attribute>
+    <widget class="QCheckBox" name="surfaceEvolveCheckBox">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>90</y>
+       <width>241</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Enable surface population evolution</string>
+     </property>
+    </widget>
+   </widget>
   </widget>
  </widget>
  <resources/>

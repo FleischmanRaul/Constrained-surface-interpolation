@@ -69,7 +69,6 @@ GLboolean RealSquareMatrix::PerformLUDecomposition()
 {
     if (_lu_decomposition_is_done)
         return GL_TRUE;
-
     if (_row_count <= 1)
         return GL_FALSE;
 
@@ -99,6 +98,7 @@ GLboolean RealSquareMatrix::PerformLUDecomposition()
         if (big == 0.0)
         {
             // the matrix is singular
+            cout << "E in LUP" << endl;
             return GL_FALSE;
         }
         *its = 1.0 / big;

@@ -40,7 +40,11 @@ HEADERS += \
     Core/Constants.h \
     Core/DCoordinates3.h \
     Core/Colors4.h \
-    Trigonometric/TrigonometricCurves3.h
+    Trigonometric/TrigonometricCurves3.h \
+    GA/InterpolatingSurfaceBiology.h \
+    Cyclic/CyclicSurfaces3.h \
+    Core/Utilities.h \
+    Core/ShaderPrograms.h
 
 SOURCES += \
     GUI/GLWidget.cpp \
@@ -63,7 +67,11 @@ SOURCES += \
     Core/RealSquareMatrices.cpp \
     Core/TensorProductSurfaces3.cpp \
     Core/TriangulatedMeshes3.cpp \
-    Trigonometric/TrigonometricCurves3.cpp
+    Trigonometric/TrigonometricCurves3.cpp \
+    GA/InterpolatingSurfaceBiology.cpp \
+    Cyclic/CyclicSurfaces3.cpp \
+    Core/Utilities.cpp \
+    Core/ShaderPrograms.cpp
 
 CONFIG += console \
           c++11

@@ -18,10 +18,13 @@
 #include "Core/Lights.h"
 #include "Core/HCoordinates3.h"
 #include "Core/Colors4.h"
+#include "Core/Materials.h"
 #include "Trigonometric/TrigonometricBernsteinSurfaces.h"
 #include "Trigonometric/BicubicBezierPatches.h"
 #include "Trigonometric/TrigonometricCurves3.h"
 #include "GA/InterpolatingCurveBiology.h"
+#include "GA/InterpolatingSurfaceBiology.h"
+#include "Core/ShaderPrograms.h"
 
 
 #include <stdlib.h>     //for using the function sleep
@@ -50,12 +53,21 @@ private:
     bool        _evolve;
 
     QTimer      *_curveTimer;
+    QTimer      *_surfaceTimer;
     GLuint      _curvePopulationGeneration;
 
-    // your other declarations
+    //other declarations
+
+    CurveEnergyType _curveEnergyType  = LENGTH;
+    CurveType       _curveType        = CYCLIC;
+    GLuint          _populationCount  = 100;
+    GLuint          _matingPoolCount  = 10;
+    GLuint          _maxMaturityLevel = 100;
+    GLdouble        _threshold        = EPS;
+
     //testing parametric curves
     cagd::ParametricCurve3* _pc;
-    cagd::GenericCurve3* _image_of_pc;
+    cagd::GenericCurve3*    _image_of_pc;
 
     //testing generic curves
     GLuint                     _n, _mod, _div;
@@ -66,7 +78,7 @@ private:
     cagd::GenericCurve3*       _icc2;
     cagd::GenericCurve3*       _icc3;
 
-    //testing CurveGA
+    //testing GA
     GLuint                  curve_iterations = 0;
     GLuint                  curve_generations = 0;
     GLuint                  curve_subgenerations = 0;
@@ -75,6 +87,8 @@ private:
     GLdouble                previous_fitness;
     cagd::CurveIndividual*  ci;
     cagd::CurvePopulation*  cp;
+    cagd::SurfaceIndividual*si;
+    cagd::SurfacePopulation*sp;
     ColumnMatrix<DCoordinate3> datatoint;
     ColumnMatrix<DCoordinate3> controllPoints;
     //testing triangulated meshes
@@ -82,7 +96,8 @@ private:
     GLfloat _angle;
     cagd::TriangulatedMesh3 _model;
     //creating light source
-    DirectionalLight *dl;
+    DirectionalLight *_dl;
+    DirectionalLight *_dl2;
 
     TriangularMatrix<ParametricSurface3::PartialDerivative> _pd;
     GLdouble _u_min, u_max, _v_min, _v_max;
@@ -92,8 +107,11 @@ private:
     GLuint _u_div_point_count, _v_div_point_count;
     cagd::TriangulatedMesh3 * _ips;
 
-    cagd::BicubicBezierPatch _patch;
+    Matrix<DCoordinate3> controll_nett;
+    cagd::TrigonometricBernsteinSurface3* _Bsurface;
     cagd::TriangulatedMesh3 *_before_interpolation, *_after_interpolation;
+
+    cagd::ShaderProgram _shader;
 
 public:
     // special and default constructor
@@ -104,6 +122,7 @@ public:
     void initializeGL();
     void paintGL();
     void resizeGL(int w, int h);
+    virtual ~GLWidget();
 
 public slots:
     // public event handling methods/slots
@@ -116,9 +135,23 @@ public slots:
     void set_trans_x(double value);
     void set_trans_y(double value);
     void set_trans_z(double value);
+
+    //GA slots
     void set_evolve_state(bool value);
+    void set_evolve_state2(bool value);
+    void set_curve_energy_type(int value);
+    void set_curve_type(int value);
+    void create_curve_population();
+    void set_population_count(int value);
+    void set_max_maturity_level(int value);
+    void set_mating_pool_size(int value);
+    void set_threshold(double value);
 
 private slots:
     void _evolveCurves();
+    void _evolveSurfaces();
+
+signals:
+    void valueChanged(double);
 };
 }

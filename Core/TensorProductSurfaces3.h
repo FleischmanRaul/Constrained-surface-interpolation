@@ -9,9 +9,23 @@
 
 namespace cagd
 {
+    enum SurfaceEnergyType{WILLMORE, TOTAL_CURVATURE, UMBILIC_DEVIATION, MEHLUM_TARROU /*, etc.*/};
+
     class TensorProductSurface3
     {
     public:
+        enum ImageColorScheme
+        {
+            DEFAULT_NULL_FRAGMENT = 0,
+            NORMAL_LENGTH_FRAGMENT,
+            WILLMORE_ENERGY_FRAGMENT,
+            LOGARITHMIC_WILLMORE_ENERGY_FRAGMENT,
+            UMBILIC_DEVIATION_ENERGY_FRAGMENT,
+            LOGARITHMIC_UMBILIC_DEVIATION_ENERGY_FRAGMENT,
+            TOTAL_CURVATURE_ENERGY_FRAGMENT,
+            LOGARITHMIC_TOTAL_CURVATURE_ENERGY_FRAGMENT
+        };
+
         // nested public class that represents a triangular matrix that consists of all (mixed) partial derivatives up to a maximum order
         class PartialDerivatives: public TriangularMatrix<DCoordinate3>
         {
@@ -33,9 +47,9 @@ namespace cagd
     public:
         // homework: special constructor
         TensorProductSurface3(
-                GLdouble u_min, GLdouble u_max,
-                GLdouble v_min, GLdouble v_max,
-                GLuint row_count = 4, GLuint column_count = 4,
+                GLdouble  u_min, GLdouble u_max,
+                GLdouble  v_min, GLdouble v_max,
+                GLuint    row_count = 4, GLuint column_count = 4,
                 GLboolean is_closed = GL_FALSE);
 
         // homework: copy constructor
@@ -51,6 +65,7 @@ namespace cagd
         GLvoid GetUInterval(GLdouble& u_min, GLdouble& u_max) const;
         GLvoid GetVInterval(GLdouble& v_min, GLdouble& v_max) const;
 
+        GLvoid GetDefinitionDomain(GLdouble& u_min, GLdouble& u_max, GLdouble& v_min, GLdouble& v_max)const;
         // homework: set coordinates of a selected data point
         GLboolean SetData(GLuint row, GLuint column, GLdouble x, GLdouble y, GLdouble z);
         GLboolean SetData(GLuint row, GLuint column, const DCoordinate3& point);
@@ -77,10 +92,10 @@ namespace cagd
         // s(u, v) = \sum_{i=0}^{row_count} \sum{j = 0}^{column_count} p_{ij} F_i(u) G_j(v),
         //
         // where(u, v) \in [u_{\min}, u_{\max}] \times [v_{\min}, v_{\max}]
-        virtual GLboolean CalculatePartialDerivatives(GLdouble u, GLdouble v, PartialDerivatives& pd) const = 0;
+        virtual GLboolean CalculatePartialDerivatives(GLuint maximum_order_of_partial_derivatives, GLdouble u, GLdouble v, PartialDerivatives& pd) const = 0;
 
         // generates a triangulated mesh that approximates the shape of the surface above
-        virtual TriangulatedMesh3* GenerateImage(GLuint u_div_point_count, GLuint v_div_point_count, GLenum usage_flag = GL_STATIC_DRAW) const;
+        virtual TriangulatedMesh3* GenerateImage(GLuint u_div_point_count, GLuint v_div_point_count, enum ImageColorScheme = DEFAULT_NULL_FRAGMENT, GLenum usage_flag = GL_STATIC_DRAW) const;
 
         // ensures interpolation, i.e.
         //
@@ -91,6 +106,11 @@ namespace cagd
         virtual GLvoid    DeleteVertexBufferObjectsOfData();
         virtual GLboolean RenderData(GLenum render_mode = GL_LINE_STRIP) const;
         virtual GLboolean UpdateVertexBufferObjectsOfData(GLenum usage_flag = GL_STATIC_DRAW);
+
+        GLdouble Fitness(GLuint u_div, GLuint v_div, SurfaceEnergyType etype);
+        GLdouble SurfaceFunctionals(GLdouble u, GLdouble v,const SurfaceEnergyType etype);
+
+        virtual TensorProductSurface3* Clone() = 0;
 
         // homework: destructor
         virtual ~TensorProductSurface3();
